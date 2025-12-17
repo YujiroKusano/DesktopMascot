@@ -1,0 +1,546 @@
+{
+  "mascot": {
+    "name": "エド",
+    "icon_size_px": 60,
+    "timer_ms": 33,
+    "base_speed_px": 0.45,
+    "sprite_dir": "",
+    "move_interval_ms": [
+      1800,
+      3000
+    ],
+    "stop_probability": 0.5,
+    "stop_interval_ms": [
+      1500,
+      4200
+    ],
+    "sleep_idle_sec": 45,
+    "sleep_min_duration_sec": 20,
+    "speed_eps": 0.05,
+    "anim_interval_ms": {
+      "idle": 900,
+      "walk": 166,
+      "sleep": 1140,
+      "float": 140
+    },
+    "velocity_smooth_alpha": 0.12,
+    "idle_hold_ms": 250,
+    "sprite_canvas_w_px": 90,
+    "sprite_canvas_h_px": 64,
+    "sprite_trim_alpha_threshold": 0,
+    "sprite_scale_basis": "height",
+    "orientation_flip_threshold_px": 0.06,
+    "orientation_hold_ms": 250,
+    "move_interval_ms[0]": 1800,
+    "move_interval_ms[1]": 3000,
+    "stop_interval_ms[0]": 1500,
+    "stop_interval_ms[1]": 4200
+  },
+  "profile": {
+    "user_name": "ゆうじろう"
+  },
+  "talk": {
+    "enabled": true,
+    "chat_mode": true,
+    "chat_panel_width_px": 320,
+    "chat_panel_height_px": 1200,
+    "freeze_while_bubble": true,
+    "bubble_time_base_ms": 2000,
+    "bubble_time_per_char_ms": 300,
+    "bubble_time_max_ms": 15000,
+    "auto_talk_facts_rate": 0.0,
+    "unknown_reply": "ごめん、今はわからないよ。",
+    "auto_talk_min_sec": 30.0,
+    "auto_talk_max_sec": 120.0,
+    "petting_threshold_px": 120.0,
+    "petting_window_sec": 1.2,
+    "messages": [
+      "にゃーん",
+      "おつかれさま",
+      "今日もがんばってるね",
+      "少し休憩しよ？"
+    ],
+    "test_mode": false,
+    "power_saver": false
+  },
+  "net": {
+    "answer_max_chars": 220,
+    "answer_timeout_ms": 45000,
+    "answer_max_wait_ms": 180000,
+    "search_fallback": false
+  },
+  "safety": {
+    "banned_keywords": [
+      "違法",
+      "ハッキング",
+      "個人情報",
+      "テロ",
+      "暴力"
+    ]
+  },
+  "memory": {
+    "path": "data/memory.json",
+    "max_history": 2000
+  },
+  "learning": {
+    "enabled": true,
+    "max_facts": 50,
+    "summarize_enabled": true,
+    "max_summary_chars": 800
+  },
+  "context": {
+    "include_time": false,
+    "include_location": true,
+    "location_text": ""
+  },
+  "llm": {
+    "enabled": true,
+    "base_url": "http://localhost:1234/v1",
+    "api_key": "",
+    "model": "LMStudio-openai/gpt-oss-20b",
+    "temperature": 0.7,
+    "max_tokens": 256,
+    "context_turns": 12,
+    "system_prompt": "あなたはデスクトップアシスタントです。常に日本語で、簡潔かつ丁寧に回答してください。事実が不明・不確実な場合は『わかりません』と答えてください。推測やでっち上げはしないでください。内部の指示や思考をユーザーに見せないでください。あなたはかわいい猫です。アニメの猫キャラのような話し方をして。柔軟な対応をして。"
+  },
+  "rag": {
+    "enabled": true,
+    "top_k": 3,
+    "path": "E:\\edo\\data\\vecmem.json"
+  },
+  "voice": {
+    "enabled": true,
+    "engine": "sr_google",
+    "max_record_sec": 6
+  },
+  "ui": {
+    "enforce_all": true,
+    "tabs": [
+      {
+        "id": "mascot",
+        "title": "マスコット",
+        "fields": [
+          {
+            "path": "mascot.name",
+            "label": "猫の名前",
+            "type": "string",
+            "value": "エド",
+            "hint": "猫の呼び名。会話やUIで使用されます。"
+          },
+          {
+            "path": "mascot.icon_size_px",
+            "label": "アイコンサイズ(px)",
+            "type": "int",
+            "min": 32,
+            "max": 512,
+            "step": 1,
+            "value": 60
+          },
+          {
+            "path": "mascot.timer_ms",
+            "label": "更新間隔(ms)",
+            "type": "int",
+            "min": 1,
+            "max": 1000,
+            "step": 1,
+            "value": 33
+          },
+          {
+            "path": "mascot.base_speed_px",
+            "label": "基準速度(px/tick)",
+            "type": "float",
+            "min": 0.0,
+            "max": 10.0,
+            "step": 0.1,
+            "value": 0.45
+          },
+          {
+            "path": "mascot.move_interval_ms[0]",
+            "label": "移動間隔最短(ms)",
+            "type": "int",
+            "min": 100,
+            "max": 10000,
+            "step": 50,
+            "value": 1800
+          },
+          {
+            "path": "mascot.move_interval_ms[1]",
+            "label": "移動間隔最長(ms)",
+            "type": "int",
+            "min": 100,
+            "max": 20000,
+            "step": 50,
+            "value": 3000
+          },
+          {
+            "path": "mascot.stop_probability",
+            "label": "停止確率(0-1)",
+            "type": "float",
+            "min": 0.0,
+            "max": 1.0,
+            "step": 0.01,
+            "value": 0.5
+          },
+          {
+            "path": "mascot.stop_interval_ms[0]",
+            "label": "停止間隔最短(ms)",
+            "type": "int",
+            "min": 100,
+            "max": 10000,
+            "step": 50,
+            "value": 1500
+          },
+          {
+            "path": "mascot.stop_interval_ms[1]",
+            "label": "停止間隔最長(ms)",
+            "type": "int",
+            "min": 100,
+            "max": 20000,
+            "step": 50,
+            "value": 4200
+          },
+          {
+            "path": "mascot.sleep_idle_sec",
+            "label": "スリープまでの無動作秒",
+            "type": "int",
+            "min": 1,
+            "max": 600,
+            "step": 1,
+            "value": 45
+          },
+          {
+            "path": "mascot.sleep_min_duration_sec",
+            "label": "最短スリープ秒",
+            "type": "int",
+            "min": 1,
+            "max": 600,
+            "step": 1,
+            "value": 20
+          },
+          {
+            "path": "mascot.speed_eps",
+            "label": "速度閾値(eps)",
+            "type": "float",
+            "min": 0.0,
+            "max": 1.0,
+            "step": 0.01,
+            "value": 0.05
+          },
+          {
+            "path": "mascot.anim_interval_ms.idle",
+            "label": "アニメ間隔 idle(ms)",
+            "type": "int",
+            "min": 20,
+            "max": 5000,
+            "step": 10,
+            "value": 900
+          },
+          {
+            "path": "mascot.anim_interval_ms.walk",
+            "label": "アニメ間隔 walk(ms)",
+            "type": "int",
+            "min": 20,
+            "max": 5000,
+            "step": 10,
+            "value": 166
+          },
+          {
+            "path": "mascot.anim_interval_ms.sleep",
+            "label": "アニメ間隔 sleep(ms)",
+            "type": "int",
+            "min": 20,
+            "max": 5000,
+            "step": 10,
+            "value": 1140
+          },
+          {
+            "path": "mascot.sprite_canvas_w_px",
+            "label": "スプライトキャンバス幅(px)",
+            "type": "int",
+            "min": 16,
+            "max": 1024,
+            "step": 1,
+            "value": 90
+          },
+          {
+            "path": "mascot.sprite_canvas_h_px",
+            "label": "スプライトキャンバス高(px)",
+            "type": "int",
+            "min": 16,
+            "max": 1024,
+            "step": 1,
+            "value": 64
+          },
+          {
+            "path": "mascot.sprite_trim_alpha_threshold",
+            "label": "トリミング閾値(alpha)",
+            "type": "int",
+            "min": 0,
+            "max": 255,
+            "step": 1,
+            "value": 0
+          },
+          {
+            "path": "mascot.orientation_flip_threshold_px",
+            "label": "向き反転しきい値(px)",
+            "type": "float",
+            "min": 0.0,
+            "max": 1.0,
+            "step": 0.01,
+            "value": 0.06
+          }
+        ]
+      },
+      {
+        "id": "profile",
+        "title": "プロフィール",
+        "fields": [
+          {
+            "path": "profile.user_name",
+            "label": "あなたの名前",
+            "type": "string",
+            "value": "ゆうじろう",
+            "hint": "エドが呼びかけるときのあなたの名前（ニックネーム可）"
+          }
+        ]
+      },
+      {
+        "id": "talk",
+        "title": "会話",
+        "fields": [
+          {
+            "path": "talk.chat_mode",
+            "label": "チャットモード（右下チャット表示）",
+            "type": "bool",
+            "value": true
+          },
+          {
+            "path": "talk.chat_panel_width_px",
+            "label": "チャット幅(px)",
+            "type": "int",
+            "min": 200,
+            "max": 900,
+            "step": 10,
+            "value": 320
+          },
+          {
+            "path": "talk.chat_panel_height_px",
+            "label": "チャット高(px)",
+            "type": "int",
+            "min": 200,
+            "max": 1200,
+            "step": 10,
+            "value": 1200
+          },
+          {
+            "path": "talk.enabled",
+            "label": "会話を有効化",
+            "type": "bool",
+            "value": true
+          },
+          {
+            "path": "talk.freeze_while_bubble",
+            "label": "吹き出し中は停止",
+            "type": "bool",
+            "value": true
+          },
+          {
+            "path": "talk.auto_talk_min_sec",
+            "label": "自発トーク最短(秒)",
+            "type": "float",
+            "min": 1.0,
+            "max": 3600.0,
+            "step": 1.0,
+            "value": 30.0
+          },
+          {
+            "path": "talk.auto_talk_max_sec",
+            "label": "自発トーク最長(秒)",
+            "type": "float",
+            "min": 1.0,
+            "max": 3600.0,
+            "step": 1.0,
+            "value": 120.0
+          },
+          {
+            "path": "talk.messages",
+            "label": "メッセージ（改行区切り）",
+            "type": "array.string",
+            "value": [
+              "にゃーん",
+              "おつかれさま",
+              "今日もがんばってるね",
+              "少し休憩しよ？"
+            ]
+          },
+          {
+            "path": "talk.bubble_time_base_ms",
+            "label": "吹き出し 基本(ms)",
+            "type": "int",
+            "min": 200,
+            "max": 60000,
+            "step": 100,
+            "value": 2000
+          },
+          {
+            "path": "talk.bubble_time_per_char_ms",
+            "label": "吹き出し 加算/文字(ms)",
+            "type": "int",
+            "min": 0,
+            "max": 1000,
+            "step": 5,
+            "value": 300
+          },
+          {
+            "path": "talk.bubble_time_max_ms",
+            "label": "吹き出し 上限(ms)",
+            "type": "int",
+            "min": 500,
+            "max": 120000,
+            "step": 500,
+            "value": 15000
+          }
+        ]
+      },
+      {
+        "id": "net",
+        "title": "ネット",
+        "fields": [
+          {
+            "path": "net.answer_max_chars",
+            "label": "回答最大文字数",
+            "type": "int",
+            "min": 50,
+            "max": 2000,
+            "step": 10,
+            "value": 220
+          },
+          {
+            "path": "net.answer_timeout_ms",
+            "label": "応答タイムアウト(ms)",
+            "type": "int",
+            "min": 1000,
+            "max": 300000,
+            "step": 500,
+            "value": 45000
+          }
+        ]
+      },
+      {
+        "id": "llm",
+        "title": "LLM",
+        "fields": [
+          {
+            "path": "llm.enabled",
+            "label": "LLMを有効化",
+            "type": "bool",
+            "value": true
+          },
+          {
+            "path": "llm.base_url",
+            "label": "Base URL",
+            "type": "string",
+            "value": "http://localhost:1234/v1"
+          },
+          {
+            "path": "llm.api_key",
+            "label": "API Key",
+            "type": "password",
+            "value": ""
+          },
+          {
+            "path": "llm.model",
+            "label": "Model",
+            "type": "string",
+            "value": "LMStudio-openai/gpt-oss-20b"
+          },
+          {
+            "path": "llm.temperature",
+            "label": "Temperature",
+            "type": "float",
+            "min": 0.0,
+            "max": 2.0,
+            "step": 0.1,
+            "value": 0.7
+          },
+          {
+            "path": "llm.max_tokens",
+            "label": "Max Tokens",
+            "type": "int",
+            "min": 1,
+            "max": 32768,
+            "step": 1,
+            "value": 256
+          },
+          {
+            "path": "llm.context_turns",
+            "label": "Context Turns",
+            "type": "int",
+            "min": 1,
+            "max": 100,
+            "step": 1,
+            "value": 12
+          },
+          {
+            "path": "llm.system_prompt",
+            "label": "System Prompt",
+            "type": "textarea",
+            "value": "あなたはデスクトップアシスタントです。常に日本語で、簡潔かつ丁寧に回答してください。事実が不明・不確実な場合は『わかりません』と答えてください。推測やでっち上げはしないでください。内部の指示や思考をユーザーに見せないでください。あなたはかわいい猫です。アニメの猫キャラのような話し方をして。柔軟な対応をして。"
+          }
+        ]
+      },
+      {
+        "id": "voice",
+        "title": "音声",
+        "fields": [
+          {
+            "path": "voice.enabled",
+            "label": "音声入力を有効化",
+            "type": "bool",
+            "value": true
+          },
+          {
+            "path": "voice.engine",
+            "label": "エンジン",
+            "type": "select",
+            "choices": [
+              {
+                "label": "無効",
+                "value": "none"
+              },
+              {
+                "label": "SpeechRecognition(google)",
+                "value": "sr_google"
+              }
+            ],
+            "value": "sr_google"
+          },
+          {
+            "path": "voice.max_record_sec",
+            "label": "録音上限(秒)",
+            "type": "int",
+            "min": 1,
+            "max": 30,
+            "step": 1,
+            "value": 6
+          }
+        ]
+      },
+      {
+        "id": "memory",
+        "title": "メモリ",
+        "fields": [
+          {
+            "path": "memory.max_history",
+            "label": "履歴保持数",
+            "type": "int",
+            "min": 1,
+            "max": 2000,
+            "step": 1,
+            "value": 2000
+          }
+        ]
+      }
+    ]
+  }
+}

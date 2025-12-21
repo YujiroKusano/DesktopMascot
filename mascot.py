@@ -191,6 +191,13 @@ class DesktopMascot(QWidget):
         except Exception:
             # 何かあっても通常の更新にフォールバック
             pass
+        # 掴み中は物理移動を停止（ドラッグによる手動移動のみ許可）
+        if self._dragging:
+            self.vx = 0.0
+            self.vy = 0.0
+            self.target_vx = 0.0
+            self.target_vy = 0.0
+            return
         # 速度を目標値へスムージングしてから位置を更新
         alpha = float(CFG["mascot"].get("velocity_smooth_alpha", 0.12))
         self.vx += (self.target_vx - self.vx) * alpha
@@ -467,6 +474,11 @@ class DesktopMascot(QWidget):
                 self._reset_anim_timer_for_state(self.state)
             except Exception:
                 pass
+            # ドリフト防止のため速度をクリア
+            self.vx = 0.0
+            self.vy = 0.0
+            self.target_vx = 0.0
+            self.target_vy = 0.0
             event.accept()
 
     def mouseMoveEvent(self, event):

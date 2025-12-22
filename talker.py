@@ -6,8 +6,8 @@ import random
 import time
 import json
 from PySide6.QtWidgets import QWidget, QLabel, QLineEdit, QPushButton, QHBoxLayout, QVBoxLayout, QScrollArea, QFrame, QTextEdit, QSizePolicy, QGraphicsDropShadowEffect
-from PySide6.QtCore import Qt, QTimer, QRect, QObject, Signal
-from PySide6.QtGui import QColor, QPainterPath, QRegion
+from PySide6.QtCore import Qt, QTimer, QRect, QObject, Signal, QEvent
+from PySide6.QtGui import QColor, QPainterPath, QRegion, QCursor
 import threading
 from agent.config import load_config
 from agent.safety import check_text_allowed
@@ -218,6 +218,15 @@ class _ChatWindow(QWidget):
         self._manual_position = False
         self._stick_bottom = True
         self._corner_radius_px = 12
+        # 端ドラッグでサイズ変更するための状態
+        self._resize_margin_px = 8
+        self._resizing = False
+        self._resize_left = False
+        self._resize_right = False
+        self._resize_top = False
+        self._resize_bottom = False
+        self._resize_start_geom = None  # type: ignore[var-annotated]
+        self._resize_start_mouse = None  # type: ignore[var-annotated]
         self.setObjectName("chatRoot")
         self.setStyleSheet(
             "QWidget#chatRoot {"
@@ -371,6 +380,19 @@ class _ChatWindow(QWidget):
         self._mic.released.connect(lambda: self._on_mic_release and self._on_mic_release())
 
         self.apply_config()
+
+        # カーソル更新のためのマウストラッキングとイベントフィルタ
+        try:
+            self.setMouseTracking(True)
+            self._scroll.setMouseTracking(True)
+            self._history_container.setMouseTracking(True)
+            self._edit.setMouseTracking(True)
+            self._mic.setMouseTracking(True)
+            self._send.setMouseTracking(True)
+            for w in (self, self._scroll, self._history_container, self._edit, self._mic, self._send):
+                w.installEventFilter(self)
+        except Exception:
+            pass
 
         # スクロールで最下部ボタンの表示を制御
         try:
@@ -572,6 +594,36 @@ class _ChatWindow(QWidget):
             self._update_bottom_button_visibility()
         except Exception:
             pass
+    
+    # --- resize by grabbing window edges ---
+    def _hit_edges(self, pos) -> tuple[bool, bool, bool, bool]:
+        try:
+            m = int(self._resize_margin_px)
+            r = self.rect()
+            x, y = pos.x(), pos.y()
+            on_left = (0 <= x <= m)
+            on_right = (r.width() - m <= x <= r.width())
+            on_top = (0 <= y <= m)
+            on_bottom = (r.height() - m <= y <= r.height())
+            return on_left, on_right, on_top, on_bottom
+        except Exception:
+            return (False, False, False, False)
+
+    def _update_cursor_for_pos(self, pos) -> None:
+        try:
+            l, r, t, b = self._hit_edges(pos)
+            if (l and t) or (r and b):
+                self.setCursor(Qt.SizeFDiagCursor)
+            elif (r and t) or (l and b):
+                self.setCursor(Qt.SizeBDiagCursor)
+            elif l or r:
+                self.setCursor(Qt.SizeHorCursor)
+            elif t or b:
+                self.setCursor(Qt.SizeVerCursor)
+            else:
+                self.setCursor(Qt.ArrowCursor)
+        except Exception:
+            pass
 
     def _reposition_overlays(self) -> None:
         try:
@@ -585,6 +637,20 @@ class _ChatWindow(QWidget):
             self._btn_bottom.raise_(); self._btn_close.raise_()
         except Exception:
             pass
+
+    def eventFilter(self, obj, event):
+        try:
+            if event.type() == QEvent.MouseMove:
+                # グローバル座標から自身の座標系へ変換してエッジ判定
+                try:
+                    gp = event.globalPosition().toPoint()
+                except Exception:
+                    gp = QCursor.pos()
+                pos = self.mapFromGlobal(gp)
+                self._update_cursor_for_pos(pos)
+        except Exception:
+            pass
+        return super().eventFilter(obj, event)
 
     def _update_bottom_button_visibility(self) -> None:
         try:
@@ -618,6 +684,17 @@ class _ChatWindow(QWidget):
     def mousePressEvent(self, event):
         try:
             if event.button() == Qt.LeftButton:
+                # まずはリサイズ判定（端にヒットしていればサイズ変更）
+                l, r, t, b = self._hit_edges(event.position().toPoint())
+                if l or r or t or b:
+                    self._resizing = True
+                    self._resize_left, self._resize_right = l, r
+                    self._resize_top, self._resize_bottom = t, b
+                    self._resize_start_geom = self.frameGeometry()
+                    self._resize_start_mouse = event.globalPosition().toPoint()
+                    event.accept()
+                    return
+                # 端でなければ移動ドラッグ
                 self._drag_offset = event.globalPosition().toPoint() - self.frameGeometry().topLeft()
                 event.accept()
                 return
@@ -627,12 +704,48 @@ class _ChatWindow(QWidget):
 
     def mouseMoveEvent(self, event):
         try:
+            # リサイズ中
+            if self._resizing and (event.buttons() & Qt.LeftButton) and self._resize_start_geom is not None and self._resize_start_mouse is not None:
+                start_g = self._resize_start_geom
+                start_p = self._resize_start_mouse
+                cur_p = event.globalPosition().toPoint()
+                dx = cur_p.x() - start_p.x()
+                dy = cur_p.y() - start_p.y()
+                x, y, w, h = start_g.x(), start_g.y(), start_g.width(), start_g.height()
+                min_w, min_h = 200, 420
+                max_w, max_h = 1200, 1400
+                if self._resize_left:
+                    new_x = x + dx
+                    new_w = w - dx
+                    if new_w < min_w:
+                        new_x = x + (w - min_w)
+                        new_w = min_w
+                    x, w = new_x, new_w
+                if self._resize_right:
+                    w = max(min_w, min(max_w, w + dx))
+                if self._resize_top:
+                    new_y = y + dy
+                    new_h = h - dy
+                    if new_h < min_h:
+                        new_y = y + (h - min_h)
+                        new_h = min_h
+                    y, h = new_y, new_h
+                if self._resize_bottom:
+                    h = max(min_h, min(max_h, h + dy))
+                # 反映
+                self.setGeometry(x, y, int(w), int(h))
+                self._manual_position = True
+                event.accept()
+                return
+            # 通常の移動ドラッグ
             if event.buttons() & Qt.LeftButton and self._drag_offset is not None:
                 new_pos = event.globalPosition().toPoint() - self._drag_offset
                 self.move(new_pos)
                 self._manual_position = True
                 event.accept()
                 return
+            # ホバー時カーソル更新（端ならサイズカーソル）
+            self._update_cursor_for_pos(event.position().toPoint())
         except Exception:
             pass
         return super().mouseMoveEvent(event)
@@ -640,6 +753,17 @@ class _ChatWindow(QWidget):
     def mouseReleaseEvent(self, event):
         try:
             if event.button() == Qt.LeftButton:
+                if self._resizing:
+                    # リサイズ終了
+                    self._resizing = False
+                    self._resize_left = self._resize_right = False
+                    self._resize_top = self._resize_bottom = False
+                    self._resize_start_geom = None
+                    self._resize_start_mouse = None
+                    self._manual_position = True
+                    event.accept()
+                    return
+                # 移動ドラッグ終了
                 self._drag_offset = None
                 self._manual_position = True
                 event.accept()
@@ -647,6 +771,20 @@ class _ChatWindow(QWidget):
         except Exception:
             pass
         return super().mouseReleaseEvent(event)
+
+    def enterEvent(self, event):
+        try:
+            self._update_cursor_for_pos(self.mapFromGlobal(QCursor.pos()))
+        except Exception:
+            pass
+        return super().enterEvent(event)
+
+    def leaveEvent(self, event):
+        try:
+            self.setCursor(Qt.ArrowCursor)
+        except Exception:
+            pass
+        return super().leaveEvent(event)
 
     def is_manual_position(self) -> bool:
         return bool(self._manual_position)

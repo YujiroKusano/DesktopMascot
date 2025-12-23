@@ -113,7 +113,7 @@ py -m pip install SpeechRecognition sounddevice numpy
 - 設定値はコードにハードコードせず、JSONで一元管理（UI定義も同ファイル内）。
 - 認識/スレッドからのUI操作はシグナル経由でメインスレッドに委譲しています。
 
-## アーキテクト設計（将来）v1では①と③のみ
+## アーキテクト設計（将来）v1では①と⑤のみ
 
 ```mermaid
 flowchart TB

@@ -125,6 +125,10 @@ flowchart TB
     EdoCore["EdoCore<br/>司令塔 / ルータ<br/>- 分類: 会話/検索/家電/視覚/記録<br/>- 安全チェック<br/>- 記憶参照の選択<br/>- 実行指示"]
   end
 
+  subgraph SENSE["⑤' リアルタイム視覚センサー（CV）"]
+    EdoWatch["EdoWatch<br/>Webカメラ リアルタイム解析（CV）<br/>- 動体検知（高頻度）<br/>- 顔/ランドマーク/まばたき/粗い視線（中頻度）<br/>- 姿勢/ジェスチャ（中頻度）<br/>- 物体検出（低頻度）<br/>- 平滑化/ヒステリシスでイベント化<br/>- 最新優先（フレームを溜めない）"]
+  end
+
   subgraph DATA_TOOLS["③ 記憶 & ④ 手足"]
     EdoMemory["EdoMemory<br/>SQLite<br/>- 会話ログ<br/>- 10分ごとの環境データ<br/>- 行動イベント"]
     EdoHands["EdoHands<br/>ツール群<br/>- Web検索<br/>- PC操作<br/>- 家電操作（後で）"]
@@ -140,6 +144,10 @@ flowchart TB
   end
 
   EdoShell -->|入力 音声/操作/イベント| EdoCore
+  EdoWatch -->|行動イベント/状態| EdoCore
+  EdoCore -->|必要時に静止画要求| EdoWatch
+  EdoWatch -->|最新フレーム/キーフレーム| EdoSight
+
   EdoCore -->|保存| EdoMemory
   EdoCore -->|実行| EdoHands
   EdoCore -->|会話/要約| EdoMind

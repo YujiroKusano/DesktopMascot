@@ -112,3 +112,44 @@ py -m pip install SpeechRecognition sounddevice numpy
 ## 開発メモ
 - 設定値はコードにハードコードせず、JSONで一元管理（UI定義も同ファイル内）。
 - 認識/スレッドからのUI操作はシグナル経由でメインスレッドに委譲しています。
+
+## アーキテクト設計（将来）v1では①と③のみ
+
+```mermaid
+flowchart TB
+  subgraph UI["① UI層"]
+    EdoShell["EdoShell<br/>デスクトップ猫UI / PySide6<br/>- 吹き出し/メニュー/状態表示<br/>- 入出力のみ（判断しない）"]
+  end
+
+  subgraph CORE["② 中枢制御"]
+    EdoCore["EdoCore<br/>司令塔 / ルータ<br/>- 分類: 会話/検索/家電/視覚/記録<br/>- 安全チェック<br/>- 記憶参照の選択<br/>- 実行指示"]
+  end
+
+  subgraph DATA_TOOLS["③ 記憶 & ④ 手足"]
+    EdoMemory["EdoMemory<br/>SQLite<br/>- 会話ログ<br/>- 10分ごとの環境データ<br/>- 行動イベント"]
+    EdoHands["EdoHands<br/>ツール群<br/>- Web検索<br/>- PC操作<br/>- 家電操作（後で）"]
+  end
+
+  subgraph MODELS["⑤ 推論モデル群"]
+    EdoMind["EdoMind<br/>LLM: 会話/要約/推論補助<br/>- 今: LM Studio API<br/>- 将来: llama.cpp / vLLM<br/>- 任意: LoRA適用"]
+    EdoSight["EdoSight<br/>VLM: 視覚理解<br/>- カメラ/スクショ → 説明/推定<br/>- 任意: LoRA適用"]
+  end
+
+  subgraph TRAIN["⑥ 学習・更新（常駐させない）"]
+    EdoForge["EdoForge<br/>LoRA学習・評価・更新<br/>- データ整形/学習/評価<br/>- 推論側へデプロイ"]
+  end
+
+  EdoShell -->|入力 音声/操作/イベント| EdoCore
+  EdoCore -->|保存| EdoMemory
+  EdoCore -->|実行| EdoHands
+  EdoCore -->|会話/要約| EdoMind
+  EdoCore -->|視覚解析| EdoSight
+  EdoHands -->|結果| EdoCore
+  EdoMind -->|生成結果| EdoCore
+  EdoSight -->|解析結果 テキスト| EdoCore
+  EdoCore -->|応答/表示| EdoShell
+
+  EdoMemory -->|学習用データ抽出| EdoForge
+  EdoForge -->|LoRA/設定反映| EdoMind
+  EdoForge -->|LoRA/設定反映| EdoSight
+```

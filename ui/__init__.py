@@ -1,0 +1,4 @@
+"""
+EdoShell UI package.
+"""
+

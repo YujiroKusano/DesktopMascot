@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 # エイリアスモジュール：従来の mascot（UIシェル）をわかりやすい名前で公開
-from mascot import DesktopMascot  # re-export
+from ui.shell import DesktopMascot  # re-export
 
 __all__ = ["DesktopMascot"]
 

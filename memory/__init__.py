@@ -1,0 +1,4 @@
+"""
+EdoMemory package (memory store).
+"""
+

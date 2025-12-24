@@ -75,7 +75,7 @@ def _setup_logging() -> None:
 
     sys.excepthook = _excepthook
 
-from edo_shell import DesktopMascot
+from ui.shell import DesktopMascot
 
 
 def main() -> None:

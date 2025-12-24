@@ -110,6 +110,55 @@ py -m pip install SpeechRecognition sounddevice numpy
 - `config/mascot.json`: 設定と設定UIの定義
 - `material/`: アイコンやスプライト素材
 
+## フォルダ構成（現状と将来の指針）
+
+現状（簡素な最小構成）:
+
+```text
+E:/edo/
+├─ app.pyw                # エントリポイント
+├─ mascot.py              # UI本体（EdoShellの中核）
+├─ talker.py              # チャット/吹き出し（UI）
+├─ edo_shell.py           # エイリアス: DesktopMascot
+├─ edo_talker.py          # エイリアス: Talker
+├─ agent/                 # 補助モジュール群（暫定的な場所）
+│  ├─ config.py           # 設定の既定値と読み書き
+│  ├─ llm.py              # LLM連携（EdoMind）
+│  ├─ memory.py           # 会話履歴/要約（将来EdoMemoryへ）
+│  └─ safety.py           # 簡易セーフティチェック
+├─ config/
+│  └─ mascot.json         # 設定/設定UI定義
+├─ data/
+│  └─ memory.json         # 学習メモリ（現状JSON）
+└─ material/              # 画像/スプライト素材
+```
+
+将来の推奨レイアウト（役割別に整理）:
+
+```text
+E:/edo/
+├─ app.pyw
+├─ ui/                    # EdoShell（UI層）
+│  ├─ shell.py           # 旧: mascot.py
+│  └─ chat.py            # 旧: talker.py
+├─ core/                  # EdoCore（司令塔/ルータ）
+│  └─ core.py            # ルーティング/安全/実行指示
+├─ mind/                  # EdoMind（LLM）
+│  └─ llm.py             # 旧: agent/llm.py
+├─ sight/                 # EdoSight（VLM/視覚）
+│  └─ …
+├─ hands/                 # EdoHands（ツール群）
+│  └─ web.py / os.py …
+├─ memory/                # EdoMemory（記憶）
+│  ├─ store.py           # JSON→SQLite移行予定
+│  └─ data/              # DBや永続データ
+├─ config/
+│  └─ mascot.json
+└─ assets/                # 素材（旧: material/）
+```
+
+移行は段階的に行えます。まずは `ui/` フォルダを切り出し、`mascot.py` を `ui/shell.py`、`talker.py` を `ui/chat.py` に移す → 既存の `edo_shell.py`/`edo_talker.py` を互換レイヤとして残す、の流れが安全です。
+
 ## 開発メモ
 - 設定値はコードにハードコードせず、JSONで一元管理（UI定義も同ファイル内）。
 - 認識/スレッドからのUI操作はシグナル経由でメインスレッドに委譲しています。

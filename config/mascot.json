@@ -40,7 +40,7 @@
     "user_name": "ゆうじろう"
   },
   "talk": {
-    "enabled": true,
+    "enabled": false,
     "chat_mode": true,
     "chat_panel_width_px": 320,
     "chat_panel_height_px": 1200,
@@ -336,7 +336,7 @@
             "path": "talk.enabled",
             "label": "会話を有効化",
             "type": "bool",
-            "value": true
+            "value": false
           },
           {
             "path": "talk.freeze_while_bubble",

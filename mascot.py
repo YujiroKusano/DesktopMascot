@@ -9,7 +9,7 @@ from pathlib import Path
 from PySide6.QtWidgets import QApplication, QWidget, QMenu, QDialog
 from PySide6.QtGui import QPainter, QPixmap, QGuiApplication, QAction, QTransform
 from PySide6.QtCore import Qt, QTimer, QPoint, QRect
-from talker import Talker
+from edo_talker import Talker
 from agent.config import load_config
 from settings import SettingsWindow
 

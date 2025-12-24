@@ -59,7 +59,7 @@ py mascot.py
 - `config/mascot.json` → `llm.enabled` を `true` にする。
 - `llm.base_url` に LM Studio の OpenAI 互換URLを設定（例: `http://localhost:1234/v1`）。
 - `llm.model` に使用モデル名（例: `LMStudio-openai/gpt-oss-20b`）。
-- 会話は日本語・簡潔を前提。最大文字数は `net.answer_max_chars`（既定: 220）で制御。
+- 会話は日本語・簡潔を前提（EdoMind）。最大文字数は `net.answer_max_chars`（既定: 220）で制御。
 
 ## 音声入力（任意）
 押している間だけ録音（プッシュトーク）。離すと音声認識→送信します。
@@ -71,12 +71,13 @@ py -m pip install SpeechRecognition sounddevice numpy
 依存が無い場合はバブルで案内が出ます（通常のテキスト会話はそのまま利用可）。
 
 ## 現在の仕様（要点）
-- 会話は軽量でシンプル（RAG/検索は未統合）。
+- 会話は軽量でシンプル（EdoMind=LM Studio API、RAG/検索＝EdoHandsは未統合）。
 - 右クリック「話しかける…」は入力欄を右下に直接表示（サブメニューは廃止）。
 - 「入力欄を表示」「右下固定」などの個別メニューは統合/削除済み。
 - テストモード/省電力モードは廃止。
 - 設定保存時に自動で再読込し、タイマ/アニメ/会話設定を反映。
 - UIスレッド以外からのUI操作は行わない（内部シグナルで橋渡し）。
+- 司令塔（EdoCore）は現状 `mascot.py` と `talker.py` に内包された最小構成。
 
 ## よくある調整
 - 返答が長い/短い: `net.answer_max_chars` を変更（例: 180〜260）。
@@ -85,35 +86,36 @@ py -m pip install SpeechRecognition sounddevice numpy
 
 ## 既知の制限/今後
 - LLM は現在時刻/場所を自動では知りません（`context.include_time` をONにすると注入可能）。
-- リアルタイム検索/家電操作/PC操作は未統合（ツール化して「必要時のみ実行」する構成を検討中）。
-- 「万能な猫（分類→必要アクション→最終回答）」は、軽量ルータ＋ツール群＋安全確認で段階的に追加予定。
-- カメラ情報からVLMやLoRAなどを使用し、ユーザーの行動を学習しAIが定期的に以下の判断を行う
-  - ユーザーの行動の記録および可視化
-  - 健康管理
-  - 家電操作
+- 検索/PC操作/家電操作などのツール（EdoHands）は未統合。必要時のみ実行する構成で追加予定。
+- ルーティング/安全確認（EdoCore）は段階的に拡張（分類→実行指示→結果統合）。
+- 記憶（EdoMemory）は現状 JSON（`data/memory.json`）ですが、将来は SQLite へ移行予定。
+- カメラ情報とVLM（EdoSight）やLoRA 学習（EdoForge）を使い、ユーザーの行動可視化・健康管理・家電操作などを段階的に導入予定。
 
 ## 参考（設定ファイルの場所）
 - 設定: `config/mascot.json`
-- 学習メモリ: `data/memory.json`
+- 学習メモリ: `data/memory.json`（将来: SQLite に移行し EdoMemory で管理）
 
 ## ログ
 - 起動・例外・LLM通信エラーなどは `logs/edo.log` に記録されます（ローテーションあり）。`app.pyw` からの起動でも確認できます。
 
 ## 構成（主要ファイル）
 - `app.pyw`: ログ初期化＋アプリ起動（通常のエントリポイント）
-- `mascot.py`: マスコット本体（移動/描画/右クリックメニュー）
-- `talker.py`: 吹き出し／入力バー／チャットパネル、LLM応答の橋渡し
-- `agent/llm.py`: LM Studio(OpenAI互換)への問い合わせ
+- `edo_shell.py`: UIシェル（`DesktopMascot` のエイリアス。従来名: `mascot.py`）
+- `edo_talker.py`: チャット/吹き出しUI（`Talker` のエイリアス。従来名: `talker.py`）
+- `mascot.py`: 互換維持のため残置（内部は `edo_talker` を使用）
+- `talker.py`: 互換維持のため残置（`edo_talker.py` から参照可能）
+- `agent/llm.py`: LM Studio(OpenAI互換)への問い合わせ（EdoMind）
 - `agent/config.py`: 設定の既定値・読み書き
-- `agent/memory.py`: 会話履歴・要約等の保存
+- `agent/memory.py`: 会話履歴・要約等の保存（現状: JSON、将来: EdoMemory/SQLite）
 - `config/mascot.json`: 設定と設定UIの定義
 - `material/`: アイコンやスプライト素材
 
 ## 開発メモ
 - 設定値はコードにハードコードせず、JSONで一元管理（UI定義も同ファイル内）。
 - 認識/スレッドからのUI操作はシグナル経由でメインスレッドに委譲しています。
+- 将来のコンポーネント構成（EdoShell/EdoCore/EdoMind/EdoHands/EdoSight/EdoMemory/EdoForge）に沿ってファイル分割を進めます（現状は最小構成）。
 
-## アーキテクト設計（将来）v1では①と⑤のみ
+## アーキテクト設計（将来）
 
 ```mermaid
 flowchart TB

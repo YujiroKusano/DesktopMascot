@@ -82,6 +82,13 @@ def main() -> None:
     _setup_logging()
     logging.getLogger(__name__).info("Application starting...")
     app = QApplication(sys.argv)
+    # 起動時にローカル設定サーバを起動
+    try:
+        from ui.settings_server import get_or_start  # type: ignore
+        srv = get_or_start(8766)
+        logging.getLogger(__name__).info("Settings server: %s", srv.url())
+    except Exception:
+        logging.getLogger(__name__).exception("Failed to start local settings server")
     mascot = DesktopMascot()
     mascot.show()
     code = app.exec()

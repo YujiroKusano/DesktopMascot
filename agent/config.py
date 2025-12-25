@@ -4,6 +4,12 @@ import json
 import os
 import logging
 from pathlib import Path
+try:
+    import sqlite3  # type: ignore
+    _HAS_SQLITE = True
+except Exception:
+    sqlite3 = None  # type: ignore
+    _HAS_SQLITE = False
 from typing import Any, Dict
 
 _CFG_CACHE: Dict[str, Any] | None = None
@@ -131,6 +137,53 @@ def _resolve_config_path() -> Path:
     base_dir = Path(__file__).resolve().parent.parent
     return base_dir / "config" / "mascot.json"
 
+def _resolve_db_path() -> Path:
+    base_dir = Path(__file__).resolve().parent.parent
+    return base_dir / "data" / "edo.db"
+
+def _db_available() -> bool:
+    return bool(_HAS_SQLITE)
+
+def _db_load_config() -> Dict[str, Any] | None:
+    try:
+        db_path = _resolve_db_path()
+        db_path.parent.mkdir(parents=True, exist_ok=True)
+        con = sqlite3.connect(str(db_path))
+        try:
+            con.execute(
+                "CREATE TABLE IF NOT EXISTS app_settings (id INTEGER PRIMARY KEY CHECK (id=1), json TEXT NOT NULL)"
+            )
+            cur = con.execute("SELECT json FROM app_settings WHERE id=1")
+            row = cur.fetchone()
+            if not row or not row[0]:
+                return None
+            data = json.loads(row[0])
+            return data if isinstance(data, dict) else {}
+        finally:
+            con.close()
+    except Exception:
+        logging.exception("Failed to load settings from DB")
+        return None
+
+def _db_save_config(cfg: Dict[str, Any]) -> bool:
+    try:
+        db_path = _resolve_db_path()
+        db_path.parent.mkdir(parents=True, exist_ok=True)
+        con = sqlite3.connect(str(db_path))
+        try:
+            con.execute(
+                "CREATE TABLE IF NOT EXISTS app_settings (id INTEGER PRIMARY KEY CHECK (id=1), json TEXT NOT NULL)"
+            )
+            js = json.dumps(cfg, ensure_ascii=False, indent=2)
+            con.execute("INSERT OR REPLACE INTO app_settings(id, json) VALUES(1, ?)", (js,))
+            con.commit()
+            return True
+        finally:
+            con.close()
+    except Exception:
+        logging.exception("Failed to save settings to DB")
+        return False
+
 
 def _deep_merge(base: Dict[str, Any], override: Dict[str, Any]) -> Dict[str, Any]:
     result = dict(base)
@@ -181,45 +234,42 @@ def _apply_ui_field_values(cfg: Dict[str, Any]) -> None:
 
 def load_config(force_reload: bool = False) -> Dict[str, Any]:
     """
-    JSON を読み込み、デフォルトとマージして返す。
-    - EDO_CONFIG でパス上書き可能
-    - ファイルが無い/壊れている場合はデフォルトを返す
+    設定は常に SQLite（data/edo.db）の app_settings から読み込みます。
+    - レコードが無い場合はデフォルトを作成して DB に保存します。
+    - JSON ファイルは一切使用しません。
     """
     global _CFG_CACHE
     if _CFG_CACHE is not None and not force_reload:
         return _CFG_CACHE
 
-    cfg = _default_config()
-    # LLM デフォルトを追加（ユーザ設定とマージ可能にする）
-    cfg["llm"] = _llm_default()
-    path = _resolve_config_path()
-    try:
-        if path.exists():
-            with path.open("r", encoding="utf-8") as f:
-                user = json.load(f)
-            cfg = _deep_merge(cfg, user if isinstance(user, dict) else {})
-    except Exception:
-        # 読み込み失敗時はデフォルトを使用するが、原因は記録する
-        logging.exception("Failed to read config file: %s", str(path))
-    # UI定義の value を実値へ反映
-    _apply_ui_field_values(cfg)
+    if not _db_available():
+        raise RuntimeError("sqlite3 が使用できません。設定はDB専用です。Python の sqlite3 を有効にしてください。")
 
+    db_cfg = _db_load_config()
+    if isinstance(db_cfg, dict) and db_cfg:
+        cfg = db_cfg
+    else:
+        # DB 初期化（デフォルトを保存）
+        cfg = _default_config()
+        cfg["llm"] = _llm_default()
+        ok = _db_save_config(cfg)
+        if not ok:
+            raise RuntimeError("設定の初期保存に失敗しました（DB）。")
+    # UI 定義の value を反映（存在する場合のみ無害に反映）
+    _apply_ui_field_values(cfg)
     _CFG_CACHE = cfg
     return cfg
 
 
 def save_config(cfg: Dict[str, Any]) -> None:
     """
-    現在の設定辞書を設定ファイルに保存する。
-    - 既存のマージ戦略に合わせ、保存先は _resolve_config_path() を使用
-    - フォルダが無い場合は作成
+    設定は常に SQLite に保存します。JSON には保存しません。
     """
-    path = _resolve_config_path()
-    try:
-        path.parent.mkdir(parents=True, exist_ok=True)
-        with path.open("w", encoding="utf-8") as f:
-            json.dump(cfg, f, ensure_ascii=False, indent=2)
-    except Exception:
-        # 保存失敗時は黙って無視せず、原因を記録する（UI側で通知しても良い）
-        logging.exception("Failed to save config to: %s", str(path))
+    if not _db_available():
+        raise RuntimeError("sqlite3 が使用できません。設定はDB専用です。Python の sqlite3 を有効にしてください。")
+    ok = _db_save_config(cfg)
+    if not ok:
+        raise RuntimeError("設定の保存に失敗しました（DB）。")
+    global _CFG_CACHE
+    _CFG_CACHE = cfg
 

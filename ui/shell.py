@@ -7,11 +7,21 @@ import random
 import time
 from pathlib import Path
 from PySide6.QtWidgets import QApplication, QWidget, QMenu, QDialog
-from PySide6.QtGui import QPainter, QPixmap, QGuiApplication, QAction, QTransform
+from PySide6.QtGui import QPainter, QPixmap, QGuiApplication, QAction, QTransform, QDesktopServices
 from PySide6.QtCore import Qt, QTimer, QPoint, QRect
 from ui.chat import Talker
 from agent.config import load_config
 from settings import SettingsWindow
+from PySide6.QtCore import QUrl
+
+# 設定Webサーバ（必要に応じて起動）
+def _settings_server_url() -> str | None:
+    try:
+        from ui.settings_server import get_or_start  # type: ignore
+        srv = get_or_start(8766)
+        return srv.url()
+    except Exception:
+        return None
 
 # 設定（起動時に読み込む）
 CFG = load_config()
@@ -161,6 +171,17 @@ class DesktopMascot(QWidget):
                     pass
         settings_action.triggered.connect(on_settings)
         menu.addAction(settings_action)
+        # ブラウザで設定を開く
+        settings_web_action = QAction("設定（ブラウザ）...", self)
+        def on_settings_web():
+            url = _settings_server_url()
+            if url:
+                try:
+                    QDesktopServices.openUrl(QUrl(url))
+                except Exception:
+                    pass
+        settings_web_action.triggered.connect(on_settings_web)
+        menu.addAction(settings_web_action)
         menu.exec(event.globalPos())
 
     # 描画処理

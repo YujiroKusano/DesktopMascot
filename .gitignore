@@ -1,3 +1,40 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+.venv/
+venv/
+ENV/
+
+# OS / Editors
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+.cursor/
+
+# Logs
+logs/
+
+# Local data and databases
+data/
+*.db
+*.sqlite
+
+# Secrets / env
+.env
+.env.*
+
+# Legacy config (kept out of git just in case)
+config/mascot.json
+
+# Node/Web artifacts (if any in future)
+node_modules/
+dist/
+build/
+
 ### Python bytecode / cache
 __pycache__/
 *.py[cod]
